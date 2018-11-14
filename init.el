@@ -80,13 +80,17 @@
   (mapcar #'disable-theme custom-enabled-themes)
   (load-theme theme t))
 
-(use-package dracula-theme
-  :ensure t)
-
 (use-package all-the-icons
   :ensure t
   :config
   (setq all-the-icons-color-icons t))
+
+(use-package doom-themes
+  :ensure t
+  :init
+  (load-theme 'doom-dracula t)
+  (doom-themes-visual-bell-config)
+  (doom-themes-org-config))
 
 (use-package doom-modeline
   :ensure t
@@ -96,6 +100,58 @@
   :config
   (setq doom-modeline-buffer-file-name-style 'relative-to-project))
 
+(use-package solaire-mode
+  :ensure t
+  :hook
+  ((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
+  :config
+  (add-hook 'minibuffer-setup-hook #'solaire-mode-in-minibuffer)
+  (solaire-mode-swap-bg))
+
+;; ==============================
+;; UI
+;; ==============================
+
+(use-package which-key
+  :ensure t
+  :diminish which-key-mode
+  :init
+  (which-key-mode)
+  :bind
+  (("<f5>" . which-key-show-top-level))
+  :config
+  (which-key-setup-side-window-bottom)
+  (setq which-key-sort-order 'which-key-key-order-alpha
+	which-key-side-window-max-width 0.33
+	which-key-idle-delay 0.75))
+
+;; ==============================
+;; Evil
+;; ==============================
+
+(use-package evil
+  :ensure t
+  :config
+  (setq evil-disable-insert-state-bindings t)
+  (evil-set-initial-state 'eshell-mode 'emacs)
+  (evil-set-initial-state 'inf-ruby-mode 'emacs)
+  (evil-set-initial-state 'commint-mode 'normal)
+  (evil-mode 1))
+
+
+;; ==============================
+;; Version Controll
+;; ==============================
+
+(use-package magit
+  :ensure t)
+
+(use-package evil-magit
+  :ensure t
+  :after (evil magit)
+  :config
+  (setq evil-magit-state 'normal))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -103,7 +159,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (doom-modeline all-the-icons try dracula-theme paradox use-package))))
+    (evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
