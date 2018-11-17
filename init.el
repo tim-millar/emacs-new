@@ -21,6 +21,62 @@
 (require 'use-package)
 (require 'json)
 
+(add-to-list 'load-path "~/.emacs.d.new/custom")
+
+(use-package setup-utils)
+
+(use-package general
+  :ensure t
+  :config
+  (general-define-key
+   :keymaps 'global-map
+   :states '(normal visual insert emacs)
+   :prefix "SPC"
+   :non-normal-prefix "C-SPC"
+
+   "SPC" '(counsel-M-x :which-key "M-x")
+
+   "h" '(:ignore t :which-key "help")
+   "ha" 'apropos-command
+   "hh" 'apropos-documentation
+   "hi" 'info
+   "hk" 'describe-key
+   "hd" 'counsel-descbinds
+   "hf" 'counsel-describe-function
+   "hv" 'counsel-describe-variable
+   "hb" 'describe-bindings
+   "hm" 'describe-mode
+   "hp" 'describe-package
+   "he" 'info-emacs-manual
+   "hs" 'describe-syntax
+   "hl" 'counsel-find-library
+
+   "b" '(:ignore t :which-key "buffers")
+   "bb" 'ivy-switch-buffer
+   "bi" 'ibuffer
+   "bk" 'kill-this-buffer
+   "bs" 'save-buffer
+   "bS" 'save-some-buffer
+   "b-" 'split-window-vertically
+   "b/" 'split-window-horizontally
+
+   "c" '(:ignore t :which-key "counsel")
+   "cc" '(ivy-resume :which-key "resume")
+   "cs" '(swiper :which-key "swiper")
+   "cm" '(swiper-multi :which-key "multi")
+   "ca" '(counsel-ag :which-key "ag")
+   "ci" '(counsel-imenu :which-key "imenu")
+   "ct" '(counsel-load-theme :which-key "themes")
+   "cy" '(counsel-yank-pop :which-key "yank-pop")
+   "cl" '(counsel-locate :which-key "locate")
+   "cw" '(counsel-colors-web :which-key "colors-web")
+
+   "f" '(:ignore t :which-key "files")
+   "ff" 'find-file
+   "xi" 'tm/iterm-focus
+   "xd" 'tm/iterm-goto-filedir-or-home
+   ))
+
 (use-package paradox
   :ensure t
   :diminish (paradox-menu-mode . "Paradox")
@@ -30,6 +86,30 @@
 (use-package try
   :ensure t
   :commands try)
+
+(use-package elisp-slime-nav
+  :ensure t
+  :config
+  (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
+  (add-hook hook 'elisp-slime-nav-mode)))
+
+(use-package smartparens
+  :ensure t
+  :diminish smartparens-mode)
+
+(use-package smartparens-config
+  :after smartparens
+  :init
+  (smartparens-global-mode t)
+  (smartparens-global-strict-mode t)
+  (show-smartparens-global-mode t))
+
+(use-package evil-smartparens
+  :ensure t
+  :diminish evil-smartparen-mode
+  :after (evil smartparens)
+  :config
+  (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode))
 
 ;; ==============================
 ;; Appearance
@@ -125,6 +205,41 @@
 	which-key-side-window-max-width 0.33
 	which-key-idle-delay 0.75))
 
+(use-package ivy
+  :ensure t
+  :diminish ivy-mode
+  :init
+  (ivy-mode t)
+  :bind
+  (:map ivy-minibuffer-map
+	("C-;" . ivy-avy)
+	("C-j" . ivy-next-line)
+	("C-k" . ivy-previous-line)
+	("M-j" . ivy-next-history-element)
+	("M-k" . ivy-previous-history-element))
+  :config
+  (setq enable-recursive-minibuffers t
+	ivy-use-virtual-buffers t
+	ivy-virtusl-abbreviate "full"
+	ivy-height 15
+	ivy-wrap t
+	ivy-count-format "(%d/%d) ")
+  (ivy-set-occur 'counsel-git-grep 'counsel-git-grep-occur)
+  (ivy-set-occur 'swiper 'swiper-occur))
+
+(use-package hydra
+  :ensure t)
+
+(use-package ivy-hydra
+  :ensure t
+  :after (ivy hydra))
+
+(use-package swiper
+  :ensure t)
+
+(use-package counsel
+  :ensure t)
+
 ;; ==============================
 ;; Evil
 ;; ==============================
@@ -133,11 +248,17 @@
   :ensure t
   :config
   (setq evil-disable-insert-state-bindings t)
+  (setq undo-tree-enable-undo-in-region nil)
   (evil-set-initial-state 'eshell-mode 'emacs)
-  (evil-set-initial-state 'inf-ruby-mode 'emacs)
+  ;(evil-set-initial-state 'inf-ruby-mode 'emacs)
   (evil-set-initial-state 'commint-mode 'normal)
   (evil-mode 1))
 
+(use-package evil-escape
+  :ensure t
+  :diminish evil-escape-mode
+  :config
+  (evil-escape-mode 1))
 
 ;; ==============================
 ;; Version Controll
@@ -159,7 +280,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
