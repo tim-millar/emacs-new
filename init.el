@@ -165,6 +165,18 @@
   :config
   (setq all-the-icons-color-icons t))
 
+(use-package all-the-icons-dired
+  :ensure t
+  :diminish all-the-icons-dired
+  :init
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+
+(use-package all-the-icons-ivy
+  :ensure t
+  :after (all-the-icons ivy counse)
+  :config
+  (all-the-icons-ivy-setup))
+
 (use-package doom-themes
   :ensure t
   :init
@@ -221,7 +233,7 @@
   (setq enable-recursive-minibuffers t
 	ivy-use-virtual-buffers t
 	ivy-virtusl-abbreviate "full"
-	ivy-height 15
+	ivy-height 12
 	ivy-wrap t
 	ivy-count-format "(%d/%d) ")
   (ivy-set-occur 'counsel-git-grep 'counsel-git-grep-occur)
@@ -260,12 +272,26 @@
   :config
   (evil-escape-mode 1))
 
+(use-package evil-textobj-anyblock
+  :ensure t
+  :config
+  (define-key evil-inner-text-objects-map "b" 'evil-textobj-anyblock-inner-block)
+  (define-key evil-outer-text-objects-map "b" 'evil-textobj-anyblock-a-block))
+
+(use-package evil-indent-plus
+  :ensure t
+  :init
+  (evil-indent-plus-default-bindings))
+
 ;; ==============================
 ;; Version Controll
 ;; ==============================
 
 (use-package magit
-  :ensure t)
+  :ensure t
+  :after ivy
+  :config
+  (setq magit-completing-read-function 'ivy-completing-read))
 
 (use-package evil-magit
   :ensure t
@@ -280,7 +306,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
