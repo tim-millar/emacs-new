@@ -9,8 +9,7 @@
 			 ("gnu" . "https://elpa.gnu.org/packages/")
 			 ("org" . "https://orgmode.org/elpa/")
 			 )
-      package-archive-priorities '(("melpa" . 1))
-      )
+      package-archive-priorities '(("melpa" . 1)))
 
 (package-initialize)
 
@@ -37,7 +36,7 @@
    "SPC" '(counsel-M-x :which-key "M-x")
 
    "h" '(:ignore t :which-key "help")
-   "ha" 'apropos-command
+   "ha" 'counsel-apropos
    "hh" 'apropos-documentation
    "hi" 'info
    "hk" 'describe-key
@@ -70,9 +69,21 @@
    "cy" '(counsel-yank-pop :which-key "yank-pop")
    "cl" '(counsel-locate :which-key "locate")
    "cw" '(counsel-colors-web :which-key "colors-web")
+   "cf" '(counsel-fzf :which-key "fzf")
+   "cr" '(counsel-evil-registers :which-key "evil-registers")
+   "cp" '(counsel-package :which-key "packages")
+   "cg" '(counsel-rg :which-key "rip-grep")
+   "cd" '(counsel-dired-jump :which-key "dired-jump")
+   "cj" '(counsel-file-jump :which-key "file-jump")
+   "cf" '(counsel-recentf :which-key "recentf")
 
    "f" '(:ignore t :which-key "files")
-   "ff" 'find-file
+   "ff" 'counsel-find-file
+
+   "g" '(:ignore t :which-key "git")
+   "gs" 'magit-status
+   "gg" 'counsel-git-grep
+
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
    ))
