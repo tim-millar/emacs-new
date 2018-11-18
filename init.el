@@ -264,6 +264,18 @@
   :ensure t)
 
 ;; ==============================
+;; Dired
+;; ==============================
+
+(setq dired-recursive-copies 'always
+      dired-recursive-deletes 'top
+      dired-dwim-target t
+      dired-use-ls-dired nil)
+
+(add-hook 'dired-mode-hook
+	  '(dired-hide-details-mode t))
+
+;; ==============================
 ;; Evil
 ;; ==============================
 
