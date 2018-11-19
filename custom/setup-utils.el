@@ -24,7 +24,7 @@
   )
 
 (defun tm/iterm-focus ()
-  ;xs(interactive)
+  (interactive)
   (do-applescript
    " do shell script \"open -a iTerm\"\n"
    ))

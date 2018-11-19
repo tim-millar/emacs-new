@@ -34,7 +34,10 @@
    :non-normal-prefix "C-SPC"
 
    "SPC" '(counsel-M-x :which-key "M-x")
+   "TAB" 'next-buffer
+   "DEL" 'previous-buffer
 
+   ;; "h" '(help-map :which-key "help")
    "h" '(:ignore t :which-key "help")
    "ha" 'counsel-apropos
    "hh" 'apropos-documentation
@@ -83,6 +86,10 @@
    "g" '(:ignore t :which-key "git")
    "gs" 'magit-status
    "gg" 'counsel-git-grep
+
+   "p" '(projectile-command-map :which-key "projectile")
+   "r" '(projectile-rails-mode-map :which-key "projectile-rails")
+   ;"x" 'ctl-x-map
 
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
@@ -264,6 +271,36 @@
   :ensure t)
 
 ;; ==============================
+;; Projectile
+;; ==============================
+
+(use-package projectile
+  :ensure t
+  :config
+  (setq projectile-switch-project-action 'projectile-dired)
+  (setq projectile-completion-system 'ivy)
+  (setq projectile-mode-line
+	'(:eval (format " [%s]" (projectile-project-name))))
+  (projectile-mode t))
+
+(use-package counsel-projectile
+  :ensure t
+  :after (projectile counsel)
+  :config
+  (counsel-projectile-mode))
+
+;; ==============================
+;; Rails IDE
+;; ==============================
+
+(use-package projectile-rails
+  :ensure t
+  :diminish projectile-rails-mode
+  :after projectile
+  :config
+  (projectile-rails-global-mode))
+
+;; ==============================
 ;; Dired
 ;; ==============================
 
@@ -273,7 +310,8 @@
       dired-use-ls-dired nil)
 
 (add-hook 'dired-mode-hook
-	  '(dired-hide-details-mode t))
+	  (lambda ()
+	    (dired-hide-details-mode t)))
 
 ;; ==============================
 ;; Evil
@@ -306,6 +344,12 @@
   :init
   (evil-indent-plus-default-bindings))
 
+(use-package evil-nerd-commenter
+  :ensure t
+  :after evil
+  :config
+  (evilnc-default-hotkeys))
+
 ;; ==============================
 ;; Version Controll
 ;; ==============================
@@ -329,7 +373,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
