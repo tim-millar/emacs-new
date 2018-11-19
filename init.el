@@ -88,7 +88,7 @@
    "gg" 'counsel-git-grep
 
    "p" '(projectile-command-map :which-key "projectile")
-   "r" '(projectile-rails-mode-map :which-key "projectile-rails")
+   "r" '(projectile-rails-command-map :which-key "projectile-rails")
    ;"x" 'ctl-x-map
 
    "xi" 'tm/iterm-focus
@@ -107,9 +107,9 @@
 
 (use-package elisp-slime-nav
   :ensure t
-  :config
-  (dolist (hook '(emacs-lisp-mode-hook ielm-mode-hook))
-  (add-hook hook 'elisp-slime-nav-mode)))
+  :hook
+  ((emacs-lisp-mode . elisp-slime-nav-mode)
+   (ielm-mode . elisp-slime-nav-mode)))
 
 (use-package smartparens
   :ensure t
@@ -126,7 +126,7 @@
   :ensure t
   :diminish evil-smartparen-mode
   :after (evil smartparens)
-  :config
+  :init
   (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode))
 
 ;; ==============================
@@ -180,14 +180,13 @@
 
 (use-package all-the-icons
   :ensure t
-  :config
+  :init
   (setq all-the-icons-color-icons t))
 
 (use-package all-the-icons-dired
   :ensure t
   :diminish all-the-icons-dired
-  :init
-  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
+  :hook dired-mode)
 
 (use-package all-the-icons-ivy
   :ensure t
@@ -197,7 +196,7 @@
 
 (use-package doom-themes
   :ensure t
-  :init
+  :config
   (load-theme 'doom-dracula t)
   (doom-themes-visual-bell-config)
   (doom-themes-org-config))
@@ -297,8 +296,27 @@
   :ensure t
   :diminish projectile-rails-mode
   :after projectile
+  ;; :bind-keymap ("SPC r" . projectile-rails-command-map)
+  :general
+  (:keymaps 'projectile-rails-command-map
+    "M-o" 'hydra-projectile-rails/body)
   :config
   (projectile-rails-global-mode))
+
+(use-package enh-ruby-mode
+  :ensure t
+  :mode
+  ("\\(?:\\.rb\\|ru\\|rake\\|thor\\|jbuilder\\|gemspec\\|podspec\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'" . enh-ruby-mode)
+  :interpreter "ruby")
+
+(use-package inf-ruby
+  :ensure t
+  :after enh-ruby-mode)
+
+(use-package rvm
+  :ensure t
+  :config
+  (rvm-use-default))
 
 ;; ==============================
 ;; Dired
@@ -319,11 +337,12 @@
 
 (use-package evil
   :ensure t
-  :config
+  :init
   (setq evil-disable-insert-state-bindings t)
   (setq undo-tree-enable-undo-in-region nil)
+  :config
   (evil-set-initial-state 'eshell-mode 'emacs)
-  ;(evil-set-initial-state 'inf-ruby-mode 'emacs)
+  (evil-set-initial-state 'inf-ruby-mode 'emacs)
   (evil-set-initial-state 'commint-mode 'normal)
   (evil-mode 1))
 
@@ -373,7 +392,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
