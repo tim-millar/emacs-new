@@ -92,6 +92,7 @@
 
    "p" '(projectile-command-map :which-key "projectile")
    "r" '(projectile-rails-command-map :which-key "projectile-rails")
+   "a" '(rspec-mode-keymap :which-key "rspec")
 
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
@@ -319,6 +320,29 @@
   :config
   (rvm-use-default))
 
+(use-package web-mode
+  :ensure t
+  :mode
+  (("\\.erb$" . web-mode)
+   ("\\.html?" . web-mode))
+  :init
+  (setq web-mode-code-indent-offset 2
+	web-mode-css-indent-offset 2
+	web-mode-enable-css-colorization t
+	web-mode-markup-indent-offset 2
+	web-mode-script-padding 2
+	web-mode-style-padding 2))
+
+(use-package yaml-mode
+  :ensure t)
+
+(use-package rspec-mode
+  :ensure t
+  :diminish rspec-mode
+  :init
+  (setq rspec-use-rake-when-possible nil)
+  :hook dired-mode)
+
 ;; ==============================
 ;; Dired
 ;; ==============================
@@ -393,7 +417,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
