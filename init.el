@@ -37,6 +37,9 @@
    "TAB" 'next-buffer
    "DEL" 'previous-buffer
 
+   "," 'evilnc-comment-operator
+   "." 'evilnc-copy-and-comment-operator
+
    ;; "h" '(help-map :which-key "help")
    "h" '(:ignore t :which-key "help")
    "ha" 'counsel-apropos
@@ -89,7 +92,6 @@
 
    "p" '(projectile-command-map :which-key "projectile")
    "r" '(projectile-rails-command-map :which-key "projectile-rails")
-   ;"x" 'ctl-x-map
 
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
@@ -296,12 +298,11 @@
   :ensure t
   :diminish projectile-rails-mode
   :after projectile
-  ;; :bind-keymap ("SPC r" . projectile-rails-command-map)
-  :general
-  (:keymaps 'projectile-rails-command-map
-    "M-o" 'hydra-projectile-rails/body)
   :config
-  (projectile-rails-global-mode))
+  (projectile-rails-global-mode)
+  (general-define-key
+   :keymaps 'projectile-rails-command-map
+   "M-o" 'hydra-projectile-rails/body))
 
 (use-package enh-ruby-mode
   :ensure t
@@ -367,7 +368,7 @@
   :ensure t
   :after evil
   :config
-  (evilnc-default-hotkeys))
+  (evilnc-default-hotkeys t))
 
 ;; ==============================
 ;; Version Controll
