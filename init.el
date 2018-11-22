@@ -189,7 +189,8 @@
 (use-package all-the-icons-dired
   :ensure t
   :diminish all-the-icons-dired
-  :hook dired-mode)
+  :config
+  (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
 
 (use-package all-the-icons-ivy
   :ensure t
@@ -333,14 +334,24 @@
 	web-mode-script-padding 2
 	web-mode-style-padding 2))
 
+(use-package robe
+  :ensure t
+  :after enh-ruby-mode
+  :diminish robe-mode
+  :hook '(enh-ruby-mode))
+
 (use-package yaml-mode
+  :ensure t)
+
+(use-package bundler
   :ensure t)
 
 (use-package rspec-mode
   :ensure t
   :diminish rspec-mode
   :init
-  (setq rspec-use-rake-when-possible nil)
+  (setq rspec-use-rake-when-possible nil
+	compilation-scroll-output t)
   :hook dired-mode)
 
 ;; ==============================
@@ -417,7 +428,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
