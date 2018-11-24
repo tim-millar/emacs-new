@@ -64,6 +64,7 @@
    "bS" 'save-some-buffer
    "b-" 'split-window-vertically
    "b/" 'split-window-horizontally
+	 "bd" 'dired-jump
 
    "c" '(:ignore t :which-key "counsel")
    "cc" '(ivy-resume :which-key "resume")
@@ -96,7 +97,7 @@
 
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
-   ))
+	 ))
 
 (use-package paradox
   :ensure t
@@ -300,6 +301,8 @@
   :ensure t
   :diminish projectile-rails-mode
   :after projectile
+  :init
+  (setq projectile-rails-vanilla-command "bin/rails")
   :config
   (projectile-rails-global-mode)
   (general-define-key
@@ -355,6 +358,33 @@
   :hook dired-mode)
 
 ;; ==============================
+;; Programming
+;; ==============================
+(setq-default c-basic-offset 2
+	      tab-width 2
+	      js-indent-level 2
+	      coffee-tab-width 2
+	      javascript-indent-level 2
+	      js2-basic-offset 2
+	      web-mode-css-indent-offset 2
+	      web-mode-markup-indent-offset 2
+	      web-mode-code-indent-offset 2
+	      css-indent-offset 2)
+
+(defun set-jsx-indentation ()
+  (setq-local sgml-basic-offset js-indent-level))
+(add-hook 'js-jsx-mode-hook #'set-jsx-indentation)
+
+(use-package yasnippet
+  :ensure t
+  :diminish yas-minor-mode
+  :config
+  (yas-global-mode 1))
+
+(use-package yasnippet-snippets
+  :ensure t)
+
+;; ==============================
 ;; Dired
 ;; ==============================
 
@@ -366,6 +396,23 @@
 (add-hook 'dired-mode-hook
 	  (lambda ()
 	    (dired-hide-details-mode t)))
+
+;; ==============================
+;; Utilities
+;; ==============================
+
+(use-package eshell
+  :init
+  (setenv "PAGER" "cat")
+  (setq eshell-visual-commands
+	'("less" "tmux" "htop" "top" "bash" "zsh" "fish" "ssh" "tail" "vi")
+	eshell-visual-subcommands
+	'("git" ("log" "diff" "show"))))
+
+(use-package eshell-git-prompt
+  :ensure t
+  :config
+  (eshell-git-prompt-use-theme 'powerline))
 
 ;; ==============================
 ;; Evil
@@ -428,7 +475,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
