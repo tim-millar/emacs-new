@@ -360,6 +360,7 @@
 ;; ==============================
 ;; Programming
 ;; ==============================
+
 (setq-default c-basic-offset 2
 	      tab-width 2
 	      js-indent-level 2
@@ -413,6 +414,33 @@
   :ensure t
   :config
   (eshell-git-prompt-use-theme 'powerline))
+
+(use-package ibuffer-vc
+	:ensure t
+	:init
+	(setq ibuffer-formats
+				'((mark modified read-only vc-status-mini " "
+								(name 18 18 :left :elide)
+								" "
+								(size 9 -1 :right)
+								" "
+								(mode 16 16 :left :elide)
+								" "
+								(vc-status 16 16 :left)
+								" "
+								filename-and-process))
+				evil-emacs-state-modes
+				(delq 'ibuffer-mode evil-emacs-state-modes))
+	:config
+	(add-hook 'ibuffer-hook
+						(lambda ()
+							(ibuffer-auto-mode 1)
+							(add-to-list 'ibuffer-never-show-predicates "^\\*projectile")
+							(add-to-list 'ibuffer-never-show-predicates "^\\magit")
+							(setq ibuffer-show-empty-filter-groups nil)
+							(ibuffer-vc-set-filter-groups-by-vc-root)
+							(unless (eq ibuffer-sorting-mode 'alphabetic)
+								(ibuffer-do-sort-by-alphabetic)))))
 
 ;; ==============================
 ;; Evil
@@ -474,8 +502,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   (quote
-    (yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+	 (quote
+		(ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
