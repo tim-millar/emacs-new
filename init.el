@@ -88,8 +88,10 @@
    "ff" 'counsel-find-file
 
    "g" '(:ignore t :which-key "git")
+	 "gf" 'magit-log-buffer-file
    "gs" 'magit-status
    "gg" 'counsel-git-grep
+   "gt" 'git-timemachine-toggle
 
    "p" '(projectile-command-map :which-key "projectile")
    "r" '(projectile-rails-command-map :which-key "projectile-rails")
@@ -153,8 +155,7 @@
 
 (setq column-number-mode t
       sentence-end-double-space nil
-      default-fill-column 80
-      default-indent-tabs-mode nil)
+      default-fill-column 80)
 
 (defalias 'list-buffers 'ibuffer)
 
@@ -240,26 +241,28 @@
 	which-key-idle-delay 0.75))
 
 (use-package ivy
-  :ensure t
-  :diminish ivy-mode
-  :init
-  (ivy-mode t)
+	:ensure t
+	:diminish ivy-mode
+	:init
+	(setq enable-recursive-minibuffers t
+				ivy-use-virtual-buffers t
+				ivy-virtusl-abbreviate "full"
+				ivy-height 12
+				ivy-wrap t
+				ivy-use-selectable-prompt t
+				ivy-count-format "(%d/%d) ")
   :bind
-  (:map ivy-minibuffer-map
-	("C-;" . ivy-avy)
-	("C-j" . ivy-next-line)
-	("C-k" . ivy-previous-line)
-	("M-j" . ivy-next-history-element)
-	("M-k" . ivy-previous-history-element))
-  :config
-  (setq enable-recursive-minibuffers t
-	ivy-use-virtual-buffers t
-	ivy-virtusl-abbreviate "full"
-	ivy-height 12
-	ivy-wrap t
-	ivy-count-format "(%d/%d) ")
-  (ivy-set-occur 'counsel-git-grep 'counsel-git-grep-occur)
-  (ivy-set-occur 'swiper 'swiper-occur))
+	(:map ivy-minibuffer-map
+				("C-;" . ivy-avy)
+				("C-j" . ivy-next-line)
+				("C-k" . ivy-previous-line)
+				("M-j" . ivy-next-history-element)
+				("M-k" . ivy-previous-history-element))
+	:config
+	(ivy-mode t)
+	(ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur)
+	(ivy-set-occur 'counsel-git-grep 'counsel-git-grep-occur)
+	(ivy-set-occur 'swiper 'swiper-occur))
 
 (use-package hydra
   :ensure t)
@@ -362,15 +365,16 @@
 ;; ==============================
 
 (setq-default c-basic-offset 2
-	      tab-width 2
-	      js-indent-level 2
-	      coffee-tab-width 2
-	      javascript-indent-level 2
-	      js2-basic-offset 2
-	      web-mode-css-indent-offset 2
-	      web-mode-markup-indent-offset 2
-	      web-mode-code-indent-offset 2
-	      css-indent-offset 2)
+              indent-tabs-mode nil
+							tab-width 2
+							js-indent-level 2
+							coffee-tab-width 2
+							javascript-indent-level 2
+							js2-basic-offset 2
+							web-mode-css-indent-offset 2
+							web-mode-markup-indent-offset 2
+							web-mode-code-indent-offset 2
+							css-indent-offset 2)
 
 (defun set-jsx-indentation ()
   (setq-local sgml-basic-offset js-indent-level))
@@ -384,6 +388,20 @@
 
 (use-package yasnippet-snippets
   :ensure t)
+
+(use-package react-snippets
+	:ensure t)
+
+(use-package dockerfile-mode
+	:ensure t)
+
+(use-package emmet-mode
+	:ensure t
+	:config
+	(setq emmet-expand-jsx-className? t)
+	:init
+	(add-hook 'sgml-mode-hook 'emmet-mode)
+	(add-hook 'css-mode-hook 'emmet-mode))
 
 ;; ==============================
 ;; Dired
@@ -417,6 +435,7 @@
 
 (use-package ibuffer-vc
 	:ensure t
+	:after evil
 	:init
 	(setq ibuffer-formats
 				'((mark modified read-only vc-status-mini " "
@@ -441,6 +460,10 @@
 							(ibuffer-vc-set-filter-groups-by-vc-root)
 							(unless (eq ibuffer-sorting-mode 'alphabetic)
 								(ibuffer-do-sort-by-alphabetic)))))
+
+(set-register ?e (cons 'file "~/.emacs.d.new/init.el"))
+(set-register ?z (cons 'file "~/.zshrc"))
+(set-register ?n (cons 'file "~/Org/notes.org"))
 
 ;; ==============================
 ;; Evil
@@ -480,6 +503,12 @@
   :config
   (evilnc-default-hotkeys t))
 
+(use-package evil-surround
+	:ensure t
+	:after evil
+	:config
+	(global-evil-surround-mode))
+
 ;; ==============================
 ;; Version Controll
 ;; ==============================
@@ -488,7 +517,8 @@
   :ensure t
   :after ivy
   :config
-  (setq magit-completing-read-function 'ivy-completing-read))
+  (setq magit-completing-read-function 'ivy-completing-read)
+	(magit-wip-mode 1))
 
 (use-package evil-magit
   :ensure t
@@ -496,14 +526,20 @@
   :config
   (setq evil-magit-state 'normal))
 
+(use-package git-timemachine
+  :ensure t
+  :config
+  (evil-make-overriding-map git-timemachine-mode-map 'normal)
+  (add-hook 'git-timemachine-mode-hook #'evil-normalize-keymaps))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-	 (quote
-		(ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+   (quote
+    (git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
