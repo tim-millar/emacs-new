@@ -37,8 +37,8 @@
    "TAB" 'next-buffer
    "DEL" 'previous-buffer
 
-   "," 'evilnc-comment-operator
-   "." 'evilnc-copy-and-comment-operator
+   ;; "," 'evilnc-comment-operator
+   ;; "." 'evilnc-copy-and-comment-operator
 
    ;; "h" '(help-map :which-key "help")
    "h" '(:ignore t :which-key "help")
@@ -152,6 +152,7 @@
 (show-paren-mode t)
 (blink-cursor-mode -1)
 (global-hl-line-mode t)
+(winner-mode t)
 
 (setq column-number-mode t
       sentence-end-double-space nil
@@ -344,7 +345,8 @@
   :ensure t
   :after enh-ruby-mode
   :diminish robe-mode
-  :hook '(enh-ruby-mode))
+  :config
+  (add-hook 'enh-ruby-mode-hook 'robe-mode))
 
 (use-package yaml-mode
   :ensure t)
@@ -357,7 +359,9 @@
   :diminish rspec-mode
   :init
   (setq rspec-use-rake-when-possible nil
-	compilation-scroll-output t)
+        compilation-scroll-output t)
+  :config
+  (rspec-install-snippets)
   :hook dired-mode)
 
 ;; ==============================
@@ -376,8 +380,37 @@
 							web-mode-code-indent-offset 2
 							css-indent-offset 2)
 
+(use-package add-node-modules-path
+  :ensure t
+  :config
+  (add-hook 'js-mode-hook 'add-node-modules-path)
+  (add-hook 'jsx-mode-hook 'add-node-modules-path)
+  (add-hook 'js2-mode-hook 'add-node-modules-path))
+
+(defun tm/use-prettier-mode ()
+  "Only use prettier-mode if prettierrc exists."
+  (if (locate-dominating-file default-directory ".prettierrc")
+      (prettier-js-mode t)))
+
+(use-package prettier-js
+  :ensure t
+  :after add-node-modules-path
+  :init
+  ;; (setq prettier-js-args
+  ;;       '("--tab-width" "2"
+  ;;         "--semi" "true"
+  ;;         "--single-quote" "true"
+  ;;         "--trailing-comma" "all"
+  ;;         "--bracket-spacing" "true"))
+  :config
+  (add-hook 'js-mode-hook 'prettier-js-mode)
+  (add-hook 'jsx-mode-hook 'prettier-js-mode)
+  (add-hook 'js2-mode-hook 'prettier-js-mode))
+
 (defun set-jsx-indentation ()
+  "Set indentation for jsx mode."
   (setq-local sgml-basic-offset js-indent-level))
+
 (add-hook 'js-jsx-mode-hook #'set-jsx-indentation)
 
 (use-package yasnippet
@@ -402,6 +435,14 @@
 	:init
 	(add-hook 'sgml-mode-hook 'emmet-mode)
 	(add-hook 'css-mode-hook 'emmet-mode))
+
+(use-package flycheck
+  :ensure t
+  :after add-node-modules-path
+  :init
+  (global-flycheck-mode)
+  (flycheck-add-mode 'javascript-eslint 'js-mode)
+  (flycheck-add-mode 'javascript-eslint 'jsx-mode))
 
 ;; ==============================
 ;; Dired
@@ -501,7 +542,7 @@
   :ensure t
   :after evil
   :config
-  (evilnc-default-hotkeys t))
+  (evilnc-default-hotkeys))
 
 (use-package evil-surround
 	:ensure t
@@ -539,7 +580,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
