@@ -165,6 +165,16 @@
 	  (lambda () (y-or-n-p "Do you really want to exit Emacs? "))
 	  'append)
 
+(defun tm/setup-line-numbers ()
+  "Setup line numbers."
+  (progn
+    (display-line-numbers-mode t)
+    (setq display-line-numbers-type 'relative
+          display-line-numbers-current-absolute t
+          display-line-numbers-width 3)))
+
+(add-hook 'prog-mode-hook 'tm/setup-line-numbers)
+
 ;; file backups
 (setq backup-directory-alist
       '(("." . "~/.emacs.d.new/backups"))
@@ -175,13 +185,13 @@
 ;; themes, modeline and icons
 
 (defun tm/switch-theme (theme)
-  ;; This interactive call is taken from `load-theme'
+  "This interactive call is taken from `load-theme'. THEME is the new theme."
   (interactive
    (list
     (intern (completing-read "Load custom theme: "
-                             (mapcar 'symbol-name
+                             (mapc 'symbol-name
                                      (custom-available-themes))))))
-  (mapcar #'disable-theme custom-enabled-themes)
+  (mapc #'disable-theme custom-enabled-themes)
   (load-theme theme t))
 
 (use-package all-the-icons
@@ -284,11 +294,12 @@
 
 (use-package projectile
   :ensure t
-  :config
+  :init
   (setq projectile-switch-project-action 'projectile-dired)
   (setq projectile-completion-system 'ivy)
   (setq projectile-mode-line
 	'(:eval (format " [%s]" (projectile-project-name))))
+  :config
   (projectile-mode t))
 
 (use-package counsel-projectile
@@ -380,22 +391,23 @@
 							web-mode-code-indent-offset 2
 							css-indent-offset 2)
 
+(use-package rjsx-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode)))
+
 (use-package add-node-modules-path
   :ensure t
   :config
   (add-hook 'js-mode-hook 'add-node-modules-path)
   (add-hook 'jsx-mode-hook 'add-node-modules-path)
+  (add-hook 'rjsx-mode-hook 'add-node-modules-path)
   (add-hook 'js2-mode-hook 'add-node-modules-path))
-
-(defun tm/use-prettier-mode ()
-  "Only use prettier-mode if prettierrc exists."
-  (if (locate-dominating-file default-directory ".prettierrc")
-      (prettier-js-mode t)))
 
 (use-package prettier-js
   :ensure t
   :after add-node-modules-path
-  :init
+  ;; :init
   ;; (setq prettier-js-args
   ;;       '("--tab-width" "2"
   ;;         "--semi" "true"
@@ -405,6 +417,7 @@
   :config
   (add-hook 'js-mode-hook 'prettier-js-mode)
   (add-hook 'jsx-mode-hook 'prettier-js-mode)
+  (add-hook 'rjsx-mode-hook 'prettier-js-mode)
   (add-hook 'js2-mode-hook 'prettier-js-mode))
 
 (defun set-jsx-indentation ()
@@ -420,10 +433,12 @@
   (yas-global-mode 1))
 
 (use-package yasnippet-snippets
-  :ensure t)
+  :ensure t
+  :after yasnippet)
 
 (use-package react-snippets
-	:ensure t)
+	:ensure t
+  :after yasnippet)
 
 (use-package dockerfile-mode
 	:ensure t)
@@ -442,6 +457,7 @@
   :init
   (global-flycheck-mode)
   (flycheck-add-mode 'javascript-eslint 'js-mode)
+  (flycheck-add-mode 'javascript-eslint 'rjsx-mode)
   (flycheck-add-mode 'javascript-eslint 'jsx-mode))
 
 ;; ==============================
@@ -580,7 +596,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
