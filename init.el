@@ -27,6 +27,21 @@
 (use-package general
   :ensure t
   :config
+
+  ;; (general-create-definer tyrant-def
+  ;;  :states '(normal visual insert emacs)
+  ;;  :prefix "SPC"
+  ;;  :non-normal-prefix "C-SPC"
+  ;;  )
+
+  ;; (tyrant-def
+  ;;   ""     nil
+  ;;   "c"   (general-simulate-key "C-c")
+  ;;   "h"   (general-simulate-key "C-h")
+  ;;   "u"   (general-simulate-key "C-u")
+  ;;   "x"   (general-simulate-key "C-x")
+  ;;  )
+
   (general-define-key
    :keymaps 'global-map
    :states '(normal visual insert emacs)
@@ -93,6 +108,9 @@
    "gg" 'counsel-git-grep
    "gt" 'git-timemachine-toggle
 
+   "j"  '(:ignore t :which-key "jump")
+   "jj" 'dumb-jump-go
+
    "p" '(projectile-command-map :which-key "projectile")
    "r" '(projectile-rails-command-map :which-key "projectile-rails")
    "a" '(rspec-mode-keymap :which-key "rspec")
@@ -156,7 +174,8 @@
 
 (setq column-number-mode t
       sentence-end-double-space nil
-      default-fill-column 80)
+      fill-column 80
+      ispell-program-name "aspell")
 
 (defalias 'list-buffers 'ibuffer)
 
@@ -297,7 +316,7 @@
   :init
   (setq projectile-switch-project-action 'projectile-dired)
   (setq projectile-completion-system 'ivy)
-  (setq projectile-mode-line
+  (setq projectile-mode-line ;; ???
 	'(:eval (format " [%s]" (projectile-project-name))))
   :config
   (projectile-mode t))
@@ -386,10 +405,20 @@
 							coffee-tab-width 2
 							javascript-indent-level 2
 							js2-basic-offset 2
+              js2-mode-show-strict-warnings nil
 							web-mode-css-indent-offset 2
 							web-mode-markup-indent-offset 2
 							web-mode-code-indent-offset 2
 							css-indent-offset 2)
+
+(use-package dumb-jump
+  :ensure t
+  :defer t
+  :init
+  (setq dumb-jump-selector 'ivy)
+  (setq dumb-jump-aggressive nil)
+  :config
+  (dumb-jump-mode))
 
 (use-package rjsx-mode
   :ensure t
@@ -589,6 +618,18 @@
   (evil-make-overriding-map git-timemachine-mode-map 'normal)
   (add-hook 'git-timemachine-mode-hook #'evil-normalize-keymaps))
 
+;; ==============================
+;; Packages
+;; ==============================
+
+(use-package elfeed
+  :ensure t
+  :bind
+  (("C-x w" . elfeed))
+  :init
+  (setq elfeed-feeds
+        '(("http://newmonetarism.blogspot.com/feeds/posts/default" econ))))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -596,7 +637,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
