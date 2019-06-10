@@ -17,10 +17,18 @@
   (package-refresh-contents)
   (package-install 'use-package))
 
+(use-package exec-path-from-shell
+  :ensure t
+  :config
+  (when (memq window-system '(mac ns x))
+    (exec-path-from-shell-initialize))
+  (exec-path-from-shell-copy-env "HOME/.nvm"))
+
 (require 'use-package)
 (require 'json)
 
 (add-to-list 'load-path "~/.emacs.d.new/custom")
+
 
 (use-package setup-utils)
 
@@ -107,6 +115,7 @@
    "gs" 'magit-status
    "gg" 'counsel-git-grep
    "gt" 'git-timemachine-toggle
+   "gb" 'magit-blame
 
    "j"  '(:ignore t :which-key "jump")
    "jj" 'dumb-jump-go
@@ -117,6 +126,7 @@
 
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
+   "xx" 'eshell-here
 	 ))
 
 (use-package paradox
@@ -307,6 +317,12 @@
 (use-package counsel
   :ensure t)
 
+(use-package ivy-rich
+  :ensure t
+  :after ivy
+  :config
+  (ivy-rich-mode t))
+
 ;; ==============================
 ;; Projectile
 ;; ==============================
@@ -345,6 +361,9 @@
 
 (use-package enh-ruby-mode
   :ensure t
+  :init
+  (setq ruby-insert-encoding-magic-comment nil)
+  (setq enh-ruby-add-encoding-comment-on-save nil)
   :mode
   ("\\(?:\\.rb\\|ru\\|rake\\|thor\\|jbuilder\\|gemspec\\|podspec\\|/\\(?:Gem\\|Rake\\|Cap\\|Thor\\|Vagrant\\|Guard\\|Pod\\)file\\)\\'" . enh-ruby-mode)
   :interpreter "ruby")
@@ -378,6 +397,9 @@
   :config
   (add-hook 'enh-ruby-mode-hook 'robe-mode))
 
+(use-package ruby-tools
+  :ensure t)
+
 (use-package yaml-mode
   :ensure t)
 
@@ -393,6 +415,16 @@
   :config
   (rspec-install-snippets)
   :hook dired-mode)
+
+(use-package rubocop
+  :ensure t
+  :config
+  (add-hook 'enh-ruby-mode #'rubocop-mode))
+
+(use-package rubocopfmt
+  :ensure t
+  :config
+  (add-hook 'enh-ruby-mode #'rubocopfmt-mode))
 
 ;; ==============================
 ;; Programming
@@ -436,13 +468,6 @@
 (use-package prettier-js
   :ensure t
   :after add-node-modules-path
-  ;; :init
-  ;; (setq prettier-js-args
-  ;;       '("--tab-width" "2"
-  ;;         "--semi" "true"
-  ;;         "--single-quote" "true"
-  ;;         "--trailing-comma" "all"
-  ;;         "--bracket-spacing" "true"))
   :config
   (add-hook 'js-mode-hook 'prettier-js-mode)
   (add-hook 'jsx-mode-hook 'prettier-js-mode)
@@ -472,6 +497,9 @@
 (use-package dockerfile-mode
 	:ensure t)
 
+(use-package docker-tramp
+  :ensure t)
+
 (use-package emmet-mode
 	:ensure t
 	:config
@@ -489,6 +517,19 @@
   (flycheck-add-mode 'javascript-eslint 'rjsx-mode)
   (flycheck-add-mode 'javascript-eslint 'jsx-mode))
 
+(use-package markdown-mode
+  :ensure t
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "multimarkdown"))
+
+(use-package string-inflection
+  :ensure t
+  :bind
+  (("C-c i" . string-inflection-all-cycle)))
+
 ;; ==============================
 ;; Dired
 ;; ==============================
@@ -501,6 +542,17 @@
 (add-hook 'dired-mode-hook
 	  (lambda ()
 	    (dired-hide-details-mode t)))
+
+;; ==============================
+;; Org
+;; ==============================
+
+(use-package org
+  :ensure t
+  :pin org
+  :init
+  (setq org-hide-emphasis-markers t)
+  (bind-key "C-c c" 'org-capture))
 
 ;; ==============================
 ;; Utilities
@@ -518,6 +570,67 @@
   :ensure t
   :config
   (eshell-git-prompt-use-theme 'powerline))
+
+(defun eshell-here ()
+  "Opens up a new shell in the directory associated with the current
+buffer's file. The eshell is renamed to match that directory to make
+multiple eshell windows easier."
+  (interactive)
+  (let* ((parent (if (buffer-file-name)
+                     (file-name-directory (buffer-file-name))
+                   default-directory))
+         (height (/ (window-total-height) 3))
+         (name   (car (last (split-string parent "/" t)))))
+    (split-window-vertically (- height))
+    (other-window 1)
+    (eshell "new")
+    (rename-buffer (concat "*eshell: " name "*"))
+    (insert (concat "ls"))
+    (eshell-send-input)))
+
+(defun eshell/cdp ()
+  "Change directory to the project's root."
+  (eshell/cd (projectile-project-root)))
+
+;; (defun eshell/d (&rest args)
+;;   "Opens ARGS in dired mode."
+;;   (dired (pop args) "."))
+
+(defun tm/eshell-quit-or-delete-char (arg)
+  "Quits the eshell or deletes ARG (a char)."
+  (interactive "p")
+  (if (and (eolp) (looking-back eshell-prompt-regexp))
+      (progn
+        (eshell-life-is-too-much) ; Why not? (eshell/exit)
+        (delete-window))
+    (delete-forward-char arg)))
+
+;; define aliases
+(add-hook 'eshell-mode-hook (lambda ()
+
+                              (eshell/alias "ec" "find-file $1")
+                              (eshell/alias "ff" "find-file $1")
+                              (eshell/alias "fo" "find-file-other-window $1")
+                              (eshell/alias "emacs" "find-file $1")
+                              (eshell/alias "oo" "find-file-other-window $1")
+                              (eshell/alias "ll" "ls -AlohG")
+                              (eshell/alias "d" "dired $1")
+                              (eshell/alias "do" "dired-other-window $1")
+
+                              (eshell/alias "be" "bundle exec")
+                              (eshell/alias "befs" "bundle exec foreman start")
+
+                              (eshell/alias "gco" "git checkout $1")
+                              (eshell/alias "gbv" "git branch -vv")
+                              (eshell/alias "gfa" "git fetch --all")
+                              (eshell/alias "gfb" "gfa && gbv")
+
+                              (eshell/alias "gd" "magit-dff-unstaged")
+                              (eshell/alias "gds" "magit-diff-staged")
+                              (eshell/alias "gst" "magit-status")
+                              (eshell/alias "gl" "magit-log-current")
+                              (define-key eshell-mode-map (kbd "C-d")
+                                'tm/eshell-quit-or-delete-char)))
 
 (use-package ibuffer-vc
 	:ensure t
@@ -637,7 +750,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

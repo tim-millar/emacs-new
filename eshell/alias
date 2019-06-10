@@ -1,0 +1,18 @@
+alias gl magit-log-current
+alias gst magit-status
+alias gds magit-diff-staged
+alias gd magit-dff-unstaged
+alias gfb gfa && gbv
+alias gfa git fetch --all
+alias gbv git branch -vv
+alias gco git checkout $1
+alias befs bundle exec foreman start
+alias be bundle exec
+alias do dired-other-window $1
+alias d dired $1
+alias ll ls -AlohG
+alias oo find-file-other-window $1
+alias emacs find-file $1
+alias fo find-file-other-window $1
+alias ff find-file $1
+alias ec find-file $1
