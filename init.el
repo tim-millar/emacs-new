@@ -29,8 +29,10 @@
 
 (add-to-list 'load-path "~/.emacs.d.new/custom")
 
-
 (use-package setup-utils)
+
+(use-package gnu-elpa-keyring-update
+  :ensure t)
 
 (use-package general
   :ensure t
@@ -127,6 +129,9 @@
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
    "xx" 'eshell-here
+   "xb" 'ruby-toggle-block
+   "xs" 'ruby-toggle-string-quotes
+   "xy" 'ruby-tools-to-symbol
 	 ))
 
 (use-package paradox
@@ -421,10 +426,17 @@
   :config
   (add-hook 'enh-ruby-mode #'rubocop-mode))
 
-(use-package rubocopfmt
+(use-package rufo
   :ensure t
+  :init
+  (setq rufo-minor-mode-use-bundler t)
   :config
-  (add-hook 'enh-ruby-mode #'rubocopfmt-mode))
+  (add-hook 'enh-ruby-mode 'rufo-minor-mode))
+
+;; (use-package rubocopfmt
+;;   :ensure t
+;;   :config
+;;   (add-hook 'enh-ruby-mode #'rubocopfmt-mode))
 
 ;; ==============================
 ;; Programming
@@ -529,6 +541,27 @@
   :ensure t
   :bind
   (("C-c i" . string-inflection-all-cycle)))
+
+(use-package company
+  :ensure t
+  :init
+  (global-company-mode)
+  :config
+  (setq company-tooltip-align-annotations t
+        company-show-numbers t
+        company-idle-delay 0
+        company-dabbrev-downcase nil)
+  :diminish company-mode)
+
+(use-package company-quickhelp          ; Documentation popups for Company
+  :ensure t
+  :defer t
+  :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode))
+
+(use-package company-tabnine
+  :ensure t
+  :init
+  (add-to-list 'company-backends #'company-tabnine))
 
 ;; ==============================
 ;; Dired
@@ -750,7 +783,7 @@ multiple eshell windows easier."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
