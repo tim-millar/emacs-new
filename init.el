@@ -132,6 +132,7 @@
    "xb" 'ruby-toggle-block
    "xs" 'ruby-toggle-string-quotes
    "xy" 'ruby-tools-to-symbol
+   "xu" 'sp-unwrap-sexp
 	 ))
 
 (use-package paradox
@@ -467,7 +468,16 @@
 (use-package rjsx-mode
   :ensure t
   :config
-  (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode)))
+  (progn
+    (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode))
+    ))
+
+(use-package typescript-mode
+  :ensure t
+  :init
+  (setq typescript-indent-level 2)
+  :config
+  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescript-mode)))
 
 (use-package add-node-modules-path
   :ensure t
@@ -475,6 +485,7 @@
   (add-hook 'js-mode-hook 'add-node-modules-path)
   (add-hook 'jsx-mode-hook 'add-node-modules-path)
   (add-hook 'rjsx-mode-hook 'add-node-modules-path)
+  (add-hook 'typescript-mode-hook 'add-node-modules-path)
   (add-hook 'js2-mode-hook 'add-node-modules-path))
 
 (use-package prettier-js
@@ -484,6 +495,7 @@
   (add-hook 'js-mode-hook 'prettier-js-mode)
   (add-hook 'jsx-mode-hook 'prettier-js-mode)
   (add-hook 'rjsx-mode-hook 'prettier-js-mode)
+  (add-hook 'typescript-mode-hook 'prettier-js-mode)
   (add-hook 'js2-mode-hook 'prettier-js-mode))
 
 (defun set-jsx-indentation ()
@@ -512,6 +524,12 @@
 (use-package docker-tramp
   :ensure t)
 
+;; (use-package hcl-mode
+;;   :ensure t)
+
+;; (use-package terraform-mode
+;;   :ensure t)
+
 (use-package emmet-mode
 	:ensure t
 	:config
@@ -527,6 +545,7 @@
   (global-flycheck-mode)
   (flycheck-add-mode 'javascript-eslint 'js-mode)
   (flycheck-add-mode 'javascript-eslint 'rjsx-mode)
+  (flycheck-add-mode 'javascript-eslint 'typescript-mode)
   (flycheck-add-mode 'javascript-eslint 'jsx-mode))
 
 (use-package markdown-mode
@@ -542,26 +561,26 @@
   :bind
   (("C-c i" . string-inflection-all-cycle)))
 
-(use-package company
-  :ensure t
-  :init
-  (global-company-mode)
-  :config
-  (setq company-tooltip-align-annotations t
-        company-show-numbers t
-        company-idle-delay 0
-        company-dabbrev-downcase nil)
-  :diminish company-mode)
+;; (use-package company
+;;   :ensure t
+;;   :init
+;;   (global-company-mode)
+;;   :config
+;;   (setq company-tooltip-align-annotations t
+;;         company-show-numbers t
+;;         company-idle-delay 0
+;;         company-dabbrev-downcase nil)
+;;   :diminish company-mode)
 
-(use-package company-quickhelp          ; Documentation popups for Company
-  :ensure t
-  :defer t
-  :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode))
+;; (use-package company-quickhelp          ; Documentation popups for Company
+;;   :ensure t
+;;   :defer t
+;;   :init (add-hook 'global-company-mode-hook #'company-quickhelp-mode))
 
-(use-package company-tabnine
-  :ensure t
-  :init
-  (add-to-list 'company-backends #'company-tabnine))
+;; (use-package company-tabnine
+;;   :ensure t
+;;   :init
+;;   (add-to-list 'company-backends #'company-tabnine))
 
 ;; ==============================
 ;; Dired
@@ -764,6 +783,16 @@ multiple eshell windows easier."
   (evil-make-overriding-map git-timemachine-mode-map 'normal)
   (add-hook 'git-timemachine-mode-hook #'evil-normalize-keymaps))
 
+(defun ediff-copy-both-to-C ()
+  (interactive)
+  (ediff-copy-diff ediff-current-difference nil 'C nil
+                   (concat
+                    (ediff-get-region-contents ediff-current-difference 'A ediff-control-buffer)
+                    (ediff-get-region-contents ediff-current-difference 'B ediff-control-buffer))))
+(defun add-d-to-ediff-mode-map ()
+  (define-key ediff-mode-map "d" 'ediff-copy-both-to-C))
+(add-hook 'ediff-keymap-setup-hook 'add-d-to-ediff-mode-map)
+
 ;; ==============================
 ;; Packages
 ;; ==============================
@@ -783,7 +812,7 @@ multiple eshell windows easier."
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+    (typescript-mode hcl-mode terraform-mode company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
