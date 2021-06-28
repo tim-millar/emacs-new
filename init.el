@@ -27,12 +27,16 @@
 (require 'use-package)
 (require 'json)
 
-(add-to-list 'load-path "~/.emacs.d.new/custom")
+(add-to-list 'load-path "~/.emacs.d/custom")
 
 (use-package setup-utils)
 
 (use-package gnu-elpa-keyring-update
   :ensure t)
+
+(require 'server)
+(unless (server-running-p)
+ (server-start))
 
 (use-package general
   :ensure t
@@ -173,7 +177,7 @@
 ;; Appearance
 ;; ==============================
 
-(set-frame-font "Hack 13")
+(setq default-frame-alist '((font . "Hack 13")))
 
 ;; fix annoying defaults
 
@@ -212,9 +216,9 @@
 
 ;; file backups
 (setq backup-directory-alist
-      '(("." . "~/.emacs.d.new/backups"))
+      '(("." . "~/.emacs.d/backups"))
       auto-save-file-name-transforms
-      `((".*" "~/.emacs.d.new/auto-save-list/" t))
+      `((".*" "~/.emacs.d/auto-save-list/" t))
       backup-by-copying t)
 
 ;; themes, modeline and icons
@@ -326,6 +330,8 @@
 (use-package ivy-rich
   :ensure t
   :after ivy
+  :init
+  (setcdr (assq t ivy-format-functions-alist) #'ivy-format-function-line)
   :config
   (ivy-rich-mode t))
 
@@ -396,6 +402,11 @@
 	web-mode-script-padding 2
 	web-mode-style-padding 2))
 
+(use-package slim-mode
+  :ensure t
+  :mode
+  (("\\.slim\\'" . slim-mode)))
+
 (use-package robe
   :ensure t
   :after enh-ruby-mode
@@ -417,7 +428,11 @@
   :diminish rspec-mode
   :init
   (setq rspec-use-rake-when-possible nil
-        compilation-scroll-output t)
+        compilation-scroll-output t
+        rspec-use-docker-when-possible t
+        rspec-docker-command "docker-compose exec"
+        rspec-docker-cwd "/usr/src/"
+        rspec-docker-container "web")
   :config
   (rspec-install-snippets)
   :hook dired-mode)
@@ -438,6 +453,7 @@
 ;;   :ensure t
 ;;   :config
 ;;   (add-hook 'enh-ruby-mode #'rubocopfmt-mode))
+
 
 ;; ==============================
 ;; Programming
@@ -491,6 +507,15 @@
 (use-package prettier-js
   :ensure t
   :after add-node-modules-path
+  :init
+  (setq prettier-js-args
+        '(
+          "--single-quote" "true"
+          "--trailing-comma" "es5"
+          "--bracket-spacing" "true"
+          "--semi" "true"
+          "--tab-width" "2"
+          ))
   :config
   (add-hook 'js-mode-hook 'prettier-js-mode)
   (add-hook 'jsx-mode-hook 'prettier-js-mode)
@@ -527,8 +552,8 @@
 ;; (use-package hcl-mode
 ;;   :ensure t)
 
-;; (use-package terraform-mode
-;;   :ensure t)
+(use-package terraform-mode
+  :ensure t)
 
 (use-package emmet-mode
 	:ensure t
@@ -712,7 +737,7 @@ multiple eshell windows easier."
 							(unless (eq ibuffer-sorting-mode 'alphabetic)
 								(ibuffer-do-sort-by-alphabetic)))))
 
-(set-register ?e (cons 'file "~/.emacs.d.new/init.el"))
+(set-register ?e (cons 'file "~/.emacs.d/init.el"))
 (set-register ?z (cons 'file "~/.zshrc"))
 (set-register ?n (cons 'file "~/Org/notes.org"))
 
@@ -811,11 +836,11 @@ multiple eshell windows easier."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   (quote
-    (typescript-mode hcl-mode terraform-mode company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package))))
+   '(:emmet-mode slim-mode typescript-mode hcl-mode terraform-mode company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  )
+(put 'dired-find-alternate-file 'disabled nil)
