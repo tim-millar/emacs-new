@@ -40,8 +40,16 @@
 
 (use-package general
   :ensure t
+  :init
+  (setq general-override-states '(insert
+                                  emacs
+                                  hybrid
+                                  normal
+                                  visual
+                                  motion
+                                  operator
+                                  replace))
   :config
-
   ;; (general-create-definer tyrant-def
   ;;  :states '(normal visual insert emacs)
   ;;  :prefix "SPC"
@@ -57,7 +65,7 @@
   ;;  )
 
   (general-define-key
-   :keymaps 'global-map
+   :keymaps 'override
    :states '(normal visual insert emacs)
    :prefix "SPC"
    :non-normal-prefix "C-SPC"
@@ -86,7 +94,7 @@
    "hl" 'counsel-find-library
 
    "b" '(:ignore t :which-key "buffers")
-   "bb" 'ivy-switch-buffer
+   "bb" 'persp-ivy-switch-buffer
    "bi" 'ibuffer
    "bk" 'kill-this-buffer
    "bs" 'save-buffer
@@ -125,10 +133,12 @@
 
    "j"  '(:ignore t :which-key "jump")
    "jj" 'dumb-jump-go
+   "jx" 'xref-find-definitions
 
    "p" '(projectile-command-map :which-key "projectile")
    "r" '(projectile-rails-command-map :which-key "projectile-rails")
    "a" '(rspec-mode-keymap :which-key "rspec")
+   "l" '(lsp-mode-map :which-key "lsp-mode")
 
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
@@ -265,13 +275,13 @@
   :config
   (setq doom-modeline-buffer-file-name-style 'relative-to-project))
 
-(use-package solaire-mode
-  :ensure t
-  :hook
-  ((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
-  :config
-  (add-hook 'minibuffer-setup-hook #'solaire-mode-in-minibuffer)
-  (solaire-mode-swap-bg))
+;; (use-package solaire-mode
+;;   :ensure t
+;;   :hook
+;;   ((change-major-mode after-revert ediff-prepare-buffer) . turn-on-solaire-mode)
+;;   :config
+;;   (add-hook 'minibuffer-setup-hook #'solaire-mode-in-minibuffer)
+;;   (solaire-mode-swap-bg))
 
 ;; ==============================
 ;; UI
@@ -335,8 +345,20 @@
   :config
   (ivy-rich-mode t))
 
+(use-package ivy-xref
+  :ensure t
+  :init
+  ;; xref initialization is different in Emacs 27 - there are two different
+  ;; variables which can be set rather than just one
+  (when (>= emacs-major-version 27)
+    (setq xref-show-definitions-function #'ivy-xref-show-defs))
+  ;; Necessary in Emacs <27. In Emacs 27 it will affect all xref-based
+  ;; commands other than xref-find-definitions (e.g. project-find-regexp)
+  ;; as well
+  (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
+
 ;; ==============================
-;; Projectile
+;; Projectile & Perspective
 ;; ==============================
 
 (use-package projectile
@@ -354,6 +376,19 @@
   :after (projectile counsel)
   :config
   (counsel-projectile-mode))
+
+;; (use-package perspective
+;;   :ensure t
+;;   :bind
+;;   ("C-x C-b" . persp-list-buffers)   ; or use a nicer switcher, see below
+;;   :init
+;;   (setq persp-modestring-short t)
+;;   :config
+;;   (persp-mode))
+
+;; (use-package persp-projectile
+;;   :ensure t
+;;   :after (projectile perspective))
 
 ;; ==============================
 ;; Rails IDE
@@ -472,6 +507,9 @@
 							web-mode-code-indent-offset 2
 							css-indent-offset 2)
 
+(use-package vterm
+    :ensure t)
+
 (use-package dumb-jump
   :ensure t
   :defer t
@@ -484,16 +522,21 @@
 (use-package rjsx-mode
   :ensure t
   :config
-  (progn
-    (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode))
-    ))
+  (progn (add-to-list 'auto-mode-alist '("\\.js\\'" . rjsx-mode)))
+  (require 'dap-chrome)
+  (dap-chrome-setup)
+  :hook (rjsx-mode . lsp-deferred))
 
 (use-package typescript-mode
   :ensure t
   :init
   (setq typescript-indent-level 2)
   :config
-  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescript-mode)))
+  (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescript-mode))
+  (require 'dap-chrome)
+  (dap-chrome-setup)
+  :hook
+  (typescript-mode . lsp-deferred))
 
 (use-package add-node-modules-path
   :ensure t
@@ -508,14 +551,6 @@
   :ensure t
   :after add-node-modules-path
   :init
-  (setq prettier-js-args
-        '(
-          "--single-quote" "true"
-          "--trailing-comma" "es5"
-          "--bracket-spacing" "true"
-          "--semi" "true"
-          "--tab-width" "2"
-          ))
   :config
   (add-hook 'js-mode-hook 'prettier-js-mode)
   (add-hook 'jsx-mode-hook 'prettier-js-mode)
@@ -586,6 +621,12 @@
   :bind
   (("C-c i" . string-inflection-all-cycle)))
 
+(use-package graphql-mode
+  :ensure t)
+
+(use-package company
+  :ensure t)
+
 ;; (use-package company
 ;;   :ensure t
 ;;   :init
@@ -606,6 +647,45 @@
 ;;   :ensure t
 ;;   :init
 ;;   (add-to-list 'company-backends #'company-tabnine))
+
+;; ==============================
+;; lsp
+;; ==============================
+;; install lsp for all of these??
+;; (add-hook 'js-mode-hook 'prettier-js-mode)
+;; (add-hook 'jsx-mode-hook 'prettier-js-mode)
+;; (add-hook 'js2-mode-hook 'prettier-js-mode))
+
+(use-package lsp-mode
+  :ensure t
+  :init
+  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+  (setq lsp-keymap-prefix "C-c l")
+  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+         (typescript-mode . lsp)
+         (rjsx-mode . lsp)
+         ;; if you want which-key integration
+         (lsp-mode . lsp-enable-which-key-integration))
+  :commands lsp
+  )
+
+(use-package lsp-ivy
+  :ensure t
+  :after lsp-mode
+  :commands lsp-ivy-workspace-symbol)
+
+(use-package dap-mode
+  :ensure t
+  :after lsp-mode
+  :hook (('dap-stopped-hook
+          (lambda (arg) (call-interactively #'dap-hydra)))))
+
+;; ==============================
+;; Elixir
+;; ==============================
+
+(use-package elixir-mode
+  :ensure t)
 
 ;; ==============================
 ;; Dired
@@ -756,6 +836,12 @@ multiple eshell windows easier."
   (evil-set-initial-state 'commint-mode 'normal)
   (evil-mode 1))
 
+(use-package evil-collection
+  :ensure t
+  :after evil
+  :config
+  (evil-collection-init))
+
 (use-package evil-escape
   :ensure t
   :diminish evil-escape-mode
@@ -796,12 +882,6 @@ multiple eshell windows easier."
   (setq magit-completing-read-function 'ivy-completing-read)
 	(magit-wip-mode 1))
 
-(use-package evil-magit
-  :ensure t
-  :after (evil magit)
-  :config
-  (setq evil-magit-state 'normal))
-
 (use-package git-timemachine
   :ensure t
   :config
@@ -836,7 +916,7 @@ multiple eshell windows easier."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(:emmet-mode slim-mode typescript-mode hcl-mode terraform-mode company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package)))
+   '(vterm dap-mode ivy-xref lsp-ivy lsp-mode persp-projectile perspective graphql-mode elixir-mode evil-collection :emmet-mode slim-mode typescript-mode hcl-mode terraform-mode company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
