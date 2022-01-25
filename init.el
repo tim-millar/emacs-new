@@ -80,18 +80,21 @@
    ;; "h" '(help-map :which-key "help")
    "h" '(:ignore t :which-key "help")
    "ha" 'counsel-apropos
+   "hb" 'describe-bindings
+   "hc" 'helpful-command
+   "hd" 'counsel-descbinds
+   "he" 'info-emacs-manual
+   "hf" 'counsel-describe-function
+   "hF" 'helpful-function
    "hh" 'apropos-documentation
    "hi" 'info
    "hk" 'describe-key
-   "hd" 'counsel-descbinds
-   "hf" 'counsel-describe-function
-   "hv" 'counsel-describe-variable
-   "hb" 'describe-bindings
+   "hl" 'counsel-find-library
    "hm" 'describe-mode
    "hp" 'describe-package
-   "he" 'info-emacs-manual
    "hs" 'describe-syntax
-   "hl" 'counsel-find-library
+   "hv" 'counsel-describe-variable
+   "hw" 'helpful-at-point
 
    "b" '(:ignore t :which-key "buffers")
    "bb" 'persp-ivy-switch-buffer
@@ -314,15 +317,23 @@
   :bind
 	(:map ivy-minibuffer-map
 				("C-;" . ivy-avy)
+        ("C-l" . ivy-alt-done)
 				("C-j" . ivy-next-line)
 				("C-k" . ivy-previous-line)
 				("M-j" . ivy-next-history-element)
-				("M-k" . ivy-previous-history-element))
-	:config
-	(ivy-mode t)
-	(ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur)
-	(ivy-set-occur 'counsel-git-grep 'counsel-git-grep-occur)
-	(ivy-set-occur 'swiper 'swiper-occur))
+				("M-k" . ivy-previous-history-element)
+        :map ivy-switch-buffer-map
+        ("C-k" . ivy-previous-line)
+        ("C-l" . ivy-done)
+        ("C-d" . ivy-switch-buffer-kill)
+        :map ivy-reverse-i-search-map
+        ("C-k" . ivy-previous-line)
+        ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode t)
+  (ivy-set-occur 'ivy-switch-buffer 'ivy-switch-buffer-occur)
+  (ivy-set-occur 'counsel-git-grep 'counsel-git-grep-occur)
+  (ivy-set-occur 'swiper 'swiper-occur))
 
 (use-package hydra
   :ensure t)
@@ -357,6 +368,23 @@
   ;; as well
   (setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
 
+(use-package ivy-prescient
+  :ensure t
+  :after counsel
+  :init
+  (setq prescient-sort-length-enable nil
+        ivy-prescient-retain-classic-highlighting t)
+  :config
+  (ivy-prescient-mode 1)
+  (prescient-persist-mode 1))
+
+(use-package company-prescient
+  :ensure t
+  :after company
+  :config
+  (company-prescient-mode 1)
+  (prescient-persist-mode 1))
+
 ;; ==============================
 ;; Projectile & Perspective
 ;; ==============================
@@ -389,6 +417,17 @@
 ;; (use-package persp-projectile
 ;;   :ensure t
 ;;   :after (projectile perspective))
+
+(use-package helpful
+  :ensure t
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
 
 ;; ==============================
 ;; Rails IDE
@@ -703,13 +742,31 @@
 ;; ==============================
 ;; Org
 ;; ==============================
+;; (defun efs/org-mode-setup ()
+;;   (org-indent-mode)
+;;   (variable-pitch-mode nil)
+;;   (auto-fill-mode 0)
+;;   (visual-line-mode 1)
+;;   (setq evil-auto-indent nil)
+;;   (diminish org-indent-mode))
 
 (use-package org
   :ensure t
   :pin org
+  :diminish org
   :init
-  (setq org-hide-emphasis-markers t)
-  (bind-key "C-c c" 'org-capture))
+  (setq org-ellipsis " ▾"
+        org-hide-emphasis-markers t)
+  (bind-key "C-c c" 'org-capture)
+  ;; :hook (org-mode . efs/org-mode-setup)
+  )
+
+(use-package org-bullets
+  :ensure t
+  :after org
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
 
 ;; ==============================
 ;; Utilities
@@ -765,27 +822,27 @@ multiple eshell windows easier."
 ;; define aliases
 (add-hook 'eshell-mode-hook (lambda ()
 
-                              (eshell/alias "ec" "find-file $1")
-                              (eshell/alias "ff" "find-file $1")
-                              (eshell/alias "fo" "find-file-other-window $1")
-                              (eshell/alias "emacs" "find-file $1")
-                              (eshell/alias "oo" "find-file-other-window $1")
-                              (eshell/alias "ll" "ls -AlohG")
-                              (eshell/alias "d" "dired $1")
-                              (eshell/alias "do" "dired-other-window $1")
+                              ;; (eshell/alias "ec" "find-file $1")
+                              ;; (eshell/alias "ff" "find-file $1")
+                              ;; (eshell/alias "fo" "find-file-other-window $1")
+                              ;; (eshell/alias "emacs" "find-file $1")
+                              ;; (eshell/alias "oo" "find-file-other-window $1")
+                              ;; (eshell/alias "ll" "ls -AlohG")
+                              ;; (eshell/alias "d" "dired $1")
+                              ;; (eshell/alias "do" "dired-other-window $1")
 
-                              (eshell/alias "be" "bundle exec")
-                              (eshell/alias "befs" "bundle exec foreman start")
+                              ;; (eshell/alias "be" "bundle exec")
+                              ;; (eshell/alias "befs" "bundle exec foreman start")
 
-                              (eshell/alias "gco" "git checkout $1")
-                              (eshell/alias "gbv" "git branch -vv")
-                              (eshell/alias "gfa" "git fetch --all")
-                              (eshell/alias "gfb" "gfa && gbv")
+                              ;; (eshell/alias "gco" "git checkout $1")
+                              ;; (eshell/alias "gbv" "git branch -vv")
+                              ;; (eshell/alias "gfa" "git fetch --all")
+                              ;; (eshell/alias "gfb" "gfa && gbv")
 
-                              (eshell/alias "gd" "magit-dff-unstaged")
-                              (eshell/alias "gds" "magit-diff-staged")
-                              (eshell/alias "gst" "magit-status")
-                              (eshell/alias "gl" "magit-log-current")
+                              ;; (eshell/alias "gd" "magit-diff-unstaged")
+                              ;; (eshell/alias "gds" "magit-diff-staged")
+                              ;; (eshell/alias "gst" "magit-status")
+                              ;; (eshell/alias "gl" "magit-log-current")
                               (define-key eshell-mode-map (kbd "C-d")
                                 'tm/eshell-quit-or-delete-char)))
 
@@ -828,12 +885,20 @@ multiple eshell windows easier."
 (use-package evil
   :ensure t
   :init
+  (setq evil-want-keybinding nil)
   (setq evil-disable-insert-state-bindings t)
-  (setq undo-tree-enable-undo-in-region nil)
+  (setq evil-undo-system 'undo-fu)
+  (setq evil-want-integration t)
+  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-i-jump nil)
   :config
+  (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
   (evil-set-initial-state 'eshell-mode 'emacs)
   (evil-set-initial-state 'inf-ruby-mode 'emacs)
   (evil-set-initial-state 'commint-mode 'normal)
+  (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-global-set-key 'motion "j" 'evil-next-visual-line)
+  (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
   (evil-mode 1))
 
 (use-package evil-collection
@@ -870,6 +935,12 @@ multiple eshell windows easier."
 	:after evil
 	:config
 	(global-evil-surround-mode))
+
+(use-package undo-fu
+  :ensure t
+  :config
+  (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
+  (define-key evil-normal-state-map "\C-r" 'undo-fu-only-redo))
 
 ;; ==============================
 ;; Version Controll
@@ -916,7 +987,7 @@ multiple eshell windows easier."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(vterm dap-mode ivy-xref lsp-ivy lsp-mode persp-projectile perspective graphql-mode elixir-mode evil-collection :emmet-mode slim-mode typescript-mode hcl-mode terraform-mode company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package)))
+   '(undo-fu company-prescient ivy-prescient org-bullets helpful vterm dap-mode ivy-xref lsp-ivy lsp-mode persp-projectile perspective graphql-mode elixir-mode evil-collection :emmet-mode slim-mode typescript-mode hcl-mode terraform-mode company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

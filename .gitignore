@@ -57,3 +57,10 @@ projectile-bookmarks.eld
 
 # web
 /url/
+/.lsp-session-v1
+/.dap-breakpoints
+/.cache/
+/.extension/
+/projects
+/transient/
+/var/
