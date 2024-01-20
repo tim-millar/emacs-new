@@ -1,4 +1,5 @@
 ;; load package and set archives
+
 (require 'package)
 
 (setq package-enable-at-startup nil)
@@ -22,17 +23,22 @@
   :config
   (when (memq window-system '(mac ns x))
     (exec-path-from-shell-initialize))
-  (exec-path-from-shell-copy-env "HOME/.nvm"))
+  (exec-path-from-shell-copy-env "~/.nvm"))
 
 (require 'use-package)
 (require 'json)
 
-(add-to-list 'load-path "~/.emacs.d/custom")
+(add-to-list 'load-path "~/.emacs.default/custom")
 
-(use-package setup-utils)
+;; broken on upgrading to emacs-plus@30
+;; (use-package setup-utils)
 
 (use-package gnu-elpa-keyring-update
   :ensure t)
+
+(when (memq window-system '(mac ns))
+  (add-to-list 'default-frame-alist '(ns-appearance . dark)) ; nil for dark text
+  (add-to-list 'default-frame-alist '(ns-transparent-titlebar . t)))
 
 (require 'server)
 (unless (server-running-p)
@@ -97,7 +103,7 @@
    "hw" 'helpful-at-point
 
    "b" '(:ignore t :which-key "buffers")
-   "bb" 'persp-ivy-switch-buffer
+   "bb" 'ivy-switch-buffer
    "bi" 'ibuffer
    "bk" 'kill-this-buffer
    "bs" 'save-buffer
@@ -105,6 +111,7 @@
    "b-" 'split-window-vertically
    "b/" 'split-window-horizontally
 	 "bd" 'dired-jump
+   "by" 'show-buffer-file-name
 
    "c" '(:ignore t :which-key "counsel")
    "cc" '(ivy-resume :which-key "resume")
@@ -116,13 +123,15 @@
    "cy" '(counsel-yank-pop :which-key "yank-pop")
    "cl" '(counsel-locate :which-key "locate")
    "cw" '(counsel-colors-web :which-key "colors-web")
-   "cf" '(counsel-fzf :which-key "fzf")
+   "cz" '(counsel-fzf :which-key "fzf")
    "cr" '(counsel-evil-registers :which-key "evil-registers")
    "cp" '(counsel-package :which-key "packages")
    "cg" '(counsel-rg :which-key "rip-grep")
    "cd" '(counsel-dired-jump :which-key "dired-jump")
    "cj" '(counsel-file-jump :which-key "file-jump")
    "cf" '(counsel-recentf :which-key "recentf")
+   "ch" '(avy-goto-char-timer :which-key "avy")
+   "c," '(iedit-mode :which-key "iedit")
 
    "f" '(:ignore t :which-key "files")
    "ff" 'counsel-find-file
@@ -137,19 +146,32 @@
    "j"  '(:ignore t :which-key "jump")
    "jj" 'dumb-jump-go
    "jx" 'xref-find-definitions
+   "jf" 'lsp-ivy-workspace-symbol
 
    "p" '(projectile-command-map :which-key "projectile")
    "r" '(projectile-rails-command-map :which-key "projectile-rails")
-   "a" '(rspec-mode-keymap :which-key "rspec")
-   "l" '(lsp-mode-map :which-key "lsp-mode")
+   "l" '(lsp-mode-map :which-key "lsp-mode") ;; why does this not work?
 
    "xi" 'tm/iterm-focus
    "xd" 'tm/iterm-goto-filedir-or-home
    "xx" 'eshell-here
-   "xb" 'ruby-toggle-block
-   "xs" 'ruby-toggle-string-quotes
-   "xy" 'ruby-tools-to-symbol
    "xu" 'sp-unwrap-sexp
+   "xc" 'org-capture
+   "xa" 'org-agenda
+   "xl" 'org-store-link
+   "xs" 'scratch
+
+   "xr" '(:ignore t :which-key "ruby")
+   "xri" 'bundle-install
+   "xrr" '(rspec-mode-keymap :which-key "rspec")
+   "xrb" 'ruby-toggle-block
+   "xrs" 'ruby-toggle-string-quotes
+   "xry" 'ruby-tools-to-symbol
+   "xt" '(:ignore t :which-key "tab-mode")
+   "xtt" 'tab-switch
+   "xtr" 'tab-bar-rename-tab
+   "xtf" 'tab-bar-new-tab
+   "xtx" 'tab-bar-close-tab
 	 ))
 
 (use-package paradox
@@ -186,11 +208,21 @@
   :init
   (add-hook 'smartparens-enabled-hook #'evil-smartparens-mode))
 
+(defun show-buffer-file-name ()
+  "Show the full path to the current file in the minibuffer."
+  (interactive)
+  (let ((file-name (buffer-file-name)))
+    (if file-name
+        (progn
+          (message file-name)
+          (kill-new file-name))
+      (error "Buffer not visiting a file"))))
+
+(setq tab-bar-new-tab-choice "*scratch*")
+
 ;; ==============================
 ;; Appearance
 ;; ==============================
-
-(setq default-frame-alist '((font . "Hack 13")))
 
 ;; fix annoying defaults
 
@@ -217,11 +249,19 @@
 	  (lambda () (y-or-n-p "Do you really want to exit Emacs? "))
 	  'append)
 
+;; (setq default-frame-alist '((font . "Hack 9")))
+;; (setq default-frame-alist '((font . "Hack-10")))
+(setq default-frame-alist '((font . "Input Mono 8")))
+
+;; (add-to-list 'default-frame-alist '(width  . 90))
+;; (add-to-list 'default-frame-alist '(height . 40))
+;; (add-to-list 'default-frame-alist '(font . "Monospace-10"))
+
 (defun tm/setup-line-numbers ()
   "Setup line numbers."
   (progn
     (display-line-numbers-mode t)
-    (setq display-line-numbers-type 'relative
+    (setq display-line-numbers-type t
           display-line-numbers-current-absolute t
           display-line-numbers-width 3)))
 
@@ -263,6 +303,14 @@
   :config
   (all-the-icons-ivy-setup))
 
+(use-package all-the-icons-ivy-rich
+  :ensure t
+  :init (all-the-icons-ivy-rich-mode 1))
+
+(use-package ivy-rich
+  :ensure t
+  :init (ivy-rich-mode 1))
+
 (use-package doom-themes
   :ensure t
   :config
@@ -289,6 +337,9 @@
 ;; ==============================
 ;; UI
 ;; ==============================
+
+(when (fboundp 'windmove-default-keybindings)
+  (windmove-default-keybindings))
 
 (use-package which-key
   :ensure t
@@ -384,6 +435,15 @@
   :config
   (company-prescient-mode 1)
   (prescient-persist-mode 1))
+
+(use-package avy
+  :ensure t)
+
+(use-package iedit
+  :ensure t)
+
+(use-package wgrep
+  :ensure t)
 
 ;; ==============================
 ;; Projectile & Perspective
@@ -516,17 +576,17 @@
   :config
   (add-hook 'enh-ruby-mode #'rubocop-mode))
 
-(use-package rufo
-  :ensure t
-  :init
-  (setq rufo-minor-mode-use-bundler t)
-  :config
-  (add-hook 'enh-ruby-mode 'rufo-minor-mode))
-
-;; (use-package rubocopfmt
+;; (use-package rufo
 ;;   :ensure t
+;;   :init
+;;   (setq rufo-minor-mode-use-bundler t)
 ;;   :config
-;;   (add-hook 'enh-ruby-mode #'rubocopfmt-mode))
+;;   (add-hook 'enh-ruby-mode 'rufo-minor-mode))
+
+(use-package rubocopfmt
+  :ensure t
+  :config
+  (add-hook 'enh-ruby-mode #'rubocopfmt-mode))
 
 
 ;; ==============================
@@ -555,6 +615,7 @@
   :init
   (setq dumb-jump-selector 'ivy)
   (setq dumb-jump-aggressive nil)
+  (setq dumb-jump-force-searcher 'ag)
   :config
   (dumb-jump-mode))
 
@@ -574,8 +635,7 @@
   (add-to-list 'auto-mode-alist '("\\.tsx?\\'" . typescript-mode))
   (require 'dap-chrome)
   (dap-chrome-setup)
-  :hook
-  (typescript-mode . lsp-deferred))
+ )
 
 (use-package add-node-modules-path
   :ensure t
@@ -620,14 +680,12 @@
 (use-package dockerfile-mode
 	:ensure t)
 
-(use-package docker-tramp
-  :ensure t)
-
 ;; (use-package hcl-mode
 ;;   :ensure t)
 
 (use-package terraform-mode
-  :ensure t)
+  :ensure t
+  :custom (terraform-format-on-save t))
 
 (use-package emmet-mode
 	:ensure t
@@ -687,6 +745,24 @@
 ;;   :init
 ;;   (add-to-list 'company-backends #'company-tabnine))
 
+;;; Scratch buffers on demand
+(use-package scratch
+  :ensure t
+  :config
+  (defun prot/scratch-buffer-setup ()
+    "Add contents to `scratch' buffer and name it accordingly."
+    (let* ((mode (format "%s" major-mode))
+           (string (concat "Scratch buffer for: " mode "\n\n")))
+      (when scratch-buffer
+        (save-excursion
+          (insert string)
+          (goto-char (point-min))
+          (comment-region (point-at-bol) (point-at-eol)))
+        (forward-line 2))
+      (rename-buffer (concat "*Scratch for " mode "*") t)))
+  :hook (scratch-create-buffer-hook . prot/scratch-buffer-setup)
+  )
+
 ;; ==============================
 ;; lsp
 ;; ==============================
@@ -695,29 +771,35 @@
 ;; (add-hook 'jsx-mode-hook 'prettier-js-mode)
 ;; (add-hook 'js2-mode-hook 'prettier-js-mode))
 
-(use-package lsp-mode
-  :ensure t
-  :init
-  ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
-  (setq lsp-keymap-prefix "C-c l")
-  :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
-         (typescript-mode . lsp)
-         (rjsx-mode . lsp)
-         ;; if you want which-key integration
-         (lsp-mode . lsp-enable-which-key-integration))
-  :commands lsp
-  )
+;; (use-package lsp-mode
+;;   :ensure t
+;;   :init
+;;   ;; set prefix for lsp-command-keymap (few alternatives - "C-l", "C-c l")
+;;   (setq lsp-keymap-prefix "C-c l")
+;;   (add-to-list 'exec-path "~/.emacs.d/servers/elixir-ls")
+;;   :hook (;; replace XXX-mode with concrete major-mode(e. g. python-mode)
+;;          (typescript-mode . lsp)
+;;          (rjsx-mode . lsp)
+;;          (elixir-mode . lsp)
+;;          (enh-ruby-mode . lsp)
+;;          (lsp-mode . lsp-enable-which-key-integration))
+;;   :commands lsp)
 
-(use-package lsp-ivy
-  :ensure t
-  :after lsp-mode
-  :commands lsp-ivy-workspace-symbol)
+;; (use-package lsp-ivy
+;;   :ensure t
+;;   :after lsp-mode
+;;   :commands lsp-ivy-workspace-symbol)
 
-(use-package dap-mode
-  :ensure t
-  :after lsp-mode
-  :hook (('dap-stopped-hook
-          (lambda (arg) (call-interactively #'dap-hydra)))))
+;; (use-package dap-mode
+;;   :ensure t
+;;   :after lsp-mode
+;;   :hook (('dap-stopped-hook
+;;           (lambda (arg) (call-interactively #'dap-hydra)))))
+
+;; (use-package php-mode
+;;   :ensure t
+;;   :config 
+;;   (lsp-mode t))
 
 ;; ==============================
 ;; Elixir
@@ -756,8 +838,24 @@
   :diminish org
   :init
   (setq org-ellipsis " ▾"
+        org-pretty-entities t
+        org-auto-align-tags nil
+        org-tags-column 0
+        org-catch-invisible-edits 'show-and-error
+        org-special-ctrl-a/e t
+        org-insert-heading-respect-content t
         org-hide-emphasis-markers t)
-  (bind-key "C-c c" 'org-capture)
+  (setq org-agenda-files (list "~/Documents/org/todo.org"
+                               "~/Documents/org/notes.org"))
+  (setq org-capture-templates
+        '(("t" "Todo" entry
+           (file+headline "~/Documents/org/todo.org" "Agenda")
+           "\n\n** TODO %?\n%T\n\n%i\n%a\n\n\n"
+           :empty-lines 1)
+          ("n" "Notes" entry
+           (file+headline "~/Documents/org/notes.org" "Notes")
+           "\n\n** %?\n%T\n%i\n%a\n\n\n"
+           :empty-lines 1)))
   ;; :hook (org-mode . efs/org-mode-setup)
   )
 
@@ -767,6 +865,14 @@
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")))
+
+;; (use-package org-modern
+;;   :ensure t
+;;   :after org
+;;   :config (global-org-modern-mode))
+
+(use-package writeroom-mode
+  :ensure t)
 
 ;; ==============================
 ;; Utilities
@@ -876,7 +982,7 @@ multiple eshell windows easier."
 
 (set-register ?e (cons 'file "~/.emacs.d/init.el"))
 (set-register ?z (cons 'file "~/.zshrc"))
-(set-register ?n (cons 'file "~/Org/notes.org"))
+(set-register ?n (cons 'file "~/Documents/org/notes.org"))
 
 ;; ==============================
 ;; Evil
@@ -889,7 +995,7 @@ multiple eshell windows easier."
   (setq evil-disable-insert-state-bindings t)
   (setq evil-undo-system 'undo-fu)
   (setq evil-want-integration t)
-  (setq evil-want-C-u-scroll t)
+  (setq evil-want-C-u-scroll nil)
   (setq evil-want-C-i-jump nil)
   :config
   (define-key evil-insert-state-map (kbd "C-g") 'evil-normal-state)
@@ -897,6 +1003,9 @@ multiple eshell windows easier."
   (evil-set-initial-state 'inf-ruby-mode 'emacs)
   (evil-set-initial-state 'commint-mode 'normal)
   (evil-set-initial-state 'messages-buffer-mode 'normal)
+  (evil-set-initial-state 'term-mode 'emacs)
+  (evil-set-initial-state 'erc-mode 'emacs)
+  (evil-set-initial-state 'custom-mode 'emacs)
   (evil-global-set-key 'motion "j" 'evil-next-visual-line)
   (evil-global-set-key 'motion "k" 'evil-previous-visual-line)
   (evil-mode 1))
@@ -942,6 +1051,19 @@ multiple eshell windows easier."
   (define-key evil-normal-state-map "u" 'undo-fu-only-undo)
   (define-key evil-normal-state-map "\C-r" 'undo-fu-only-redo))
 
+;; problems after upgrading to emacs@30
+;; (use-package vimish-fold
+;;   :ensure
+;;   :after evil)
+
+;; (use-package evil-vimish-fold
+;;   :ensure
+;;   :after vimish-fold
+;;   :init
+;;   :diminish vimish-fold-mode
+;;   :config
+;;   (global-evil-vimish-fold-mode))
+
 ;; ==============================
 ;; Version Controll
 ;; ==============================
@@ -951,6 +1073,7 @@ multiple eshell windows easier."
   :after ivy
   :config
   (setq magit-completing-read-function 'ivy-completing-read)
+  ;; (setq magit-refs-local-branch-format "%4c %-25n %h %U%m\n")
 	(magit-wip-mode 1))
 
 (use-package git-timemachine
@@ -965,8 +1088,10 @@ multiple eshell windows easier."
                    (concat
                     (ediff-get-region-contents ediff-current-difference 'A ediff-control-buffer)
                     (ediff-get-region-contents ediff-current-difference 'B ediff-control-buffer))))
+
 (defun add-d-to-ediff-mode-map ()
   (define-key ediff-mode-map "d" 'ediff-copy-both-to-C))
+
 (add-hook 'ediff-keymap-setup-hook 'add-d-to-ediff-mode-map)
 
 ;; ==============================
@@ -981,13 +1106,49 @@ multiple eshell windows easier."
   (setq elfeed-feeds
         '(("http://newmonetarism.blogspot.com/feeds/posts/default" econ))))
 
+;; ==============================
+;; Custom functions
+;; ==============================
+
+(defun compile-in-environments-directory ()
+  (interactive)
+  (let ((default-directory
+          (if (string= (file-name-extension buffer-file-name) "tf")
+              (concat default-directory "./aws/terraform/environments")
+            default-directory))))
+  (call-interactively #'compile))
+
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
-   '(undo-fu company-prescient ivy-prescient org-bullets helpful vterm dap-mode ivy-xref lsp-ivy lsp-mode persp-projectile perspective graphql-mode elixir-mode evil-collection :emmet-mode slim-mode typescript-mode hcl-mode terraform-mode company-tabnine company-quickhelp company company-mode gnu-elpa-keyring-update rufo exec-path-from-shell exec-path docker-tramp rubocopfmt ivy-rich ivy-rich-mode string-inflection rubocop ruby-tools markdown-mode elfeed dumb-jump rjsx-mode flycheck prettier-js add-node-modules-path git-timemachine emmet-mode dockerfile-mode react-snippets evil-surround ibuffer-vc yasnippet-snippets eshell-git-prompt yasnippet robe bundler rspec-mode web-mode rvm enh-ruby-mode projectile-rails counsel-projectile evil-nerd-commenter projectile all-the-icons-ivy all-the-icons-dired evil-indent-plus evil-textobj-anyblock counsel swiper ivy-hydra evil-smartparens smartparens-config smartparens ivy elisp-slime-nav general evil-escape evil-magit magit solaire-mode evil doom-themes doom-modeline all-the-icons try paradox use-package)))
+   '(add-node-modules-path all-the-icons-dired all-the-icons-ivy
+                           all-the-icons-ivy-rich bundler
+                           company-prescient counsel-projectile
+                           dap-mode dockerfile-mode doom-modeline
+                           doom-themes dumb-jump elfeed
+                           elisp-slime-nav elixir-mode emmet-mode
+                           enh-ruby-mode eshell-git-prompt
+                           evil-collection evil-escape
+                           evil-indent-plus evil-nerd-commenter
+                           evil-smartparens evil-surround
+                           evil-textobj-anyblock evil-vimish-fold
+                           exec-path-from-shell flycheck general
+                           git-timemachine gnu-elpa-keyring-update
+                           graphql-mode helpful ibuffer-vc iedit
+                           ivy-hydra ivy-prescient ivy-xref lsp-ivy
+                           magit org-bullets org-modern paradox
+                           persp-projectile php-mode prettier-js
+                           projectile-rails react-snippets rjsx-mode
+                           robe rspec-mode rubocop rubocopfmt
+                           ruby-tools rufo rvm scratch slim-mode
+                           solaire-mode string-inflection
+                           terraform-mode try typescript-mode undo-fu
+                           use-package vterm web-mode wgrep which-key
+                           writeroom-mode yaml-mode yasnippet-snippets)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
